@@ -1,0 +1,139 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A portfolio project",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "techStack": { "type": "array", "items": { "type": "string" } },
+        "githubUrl": { "type": "string" },
+        "liveUrl": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "categories": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "timestamp" },
+        "updatedAt": { "type": "string", "format": "timestamp" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["title", "description", "authorId", "createdAt"]
+    },
+    "Skill": {
+      "title": "Skill",
+      "description": "A skill or technology",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "level": { "type": "string" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["name", "category", "authorId"]
+    },
+    "Experience": {
+      "title": "Experience",
+      "description": "Work experience timeline entry",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "company": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "current": { "type": "boolean" },
+        "description": { "type": "string" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["title", "company", "startDate", "authorId"]
+    },
+    "Blog": {
+      "title": "Blog",
+      "description": "Blog post",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "published": { "type": "boolean" },
+        "coverImage": { "type": "string" },
+        "createdAt": { "type": "string", "format": "timestamp" },
+        "updatedAt": { "type": "string", "format": "timestamp" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["title", "content", "authorId", "createdAt"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Certification",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "issuer": { "type": "string" },
+        "date": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["name", "issuer", "authorId"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Portfolio owner profile",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "title": { "type": "string" },
+        "bio": { "type": "string" },
+        "resumeUrl": { "type": "string" },
+        "githubUrl": { "type": "string" },
+        "linkedinUrl": { "type": "string" },
+        "twitterUrl": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["name", "email"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Contact form message",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "timestamp" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["name", "email", "message", "authorId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": { "$ref": "Project" },
+      "description": "Projects managed by the user"
+    },
+    "/skills/{skillId}": {
+      "schema": { "$ref": "Skill" },
+      "description": "User skills"
+    },
+    "/experiences/{experienceId}": {
+      "schema": { "$ref": "Experience" },
+      "description": "User work experience"
+    },
+    "/blogs/{blogId}": {
+      "schema": { "$ref": "Blog" },
+      "description": "User blog posts"
+    },
+    "/certificates/{certificateId}": {
+      "schema": { "$ref": "Certificate" },
+      "description": "User certificates"
+    },
+    "/userProfiles/{userId}": {
+      "schema": { "$ref": "UserProfile" },
+      "description": "Public profile configuration. The user ID is the doc ID."
+    },
+    "/messages/{messageId}": {
+      "schema": { "$ref": "Message" },
+      "description": "Messages sent from contact form"
+    }
+  }
+}

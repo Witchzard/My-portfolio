@@ -1,0 +1,177 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(authorId) {
+      return isSignedIn() && request.auth.uid == authorId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidProject(data) {
+      return data.keys().hasAll(['title', 'description', 'authorId', 'createdAt']) &&
+        data.title is string && data.title.size() <= 200 && data.title.size() > 0 &&
+        data.description is string && data.description.size() <= 10000 &&
+        data.authorId is string && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        data.createdAt == request.time &&
+        (data.get('techStack', []) is list && data.get('techStack', []).size() <= 50) &&
+        (data.get('githubUrl', '') is string && data.get('githubUrl', '').size() <= 500) &&
+        (data.get('liveUrl', '') is string && data.get('liveUrl', '').size() <= 500) &&
+        (data.get('videoUrl', '') is string && data.get('videoUrl', '').size() <= 500) &&
+        (data.get('featured', false) is bool) &&
+        (data.get('categories', []) is list && data.get('categories', []).size() <= 10) &&
+        (data.get('updatedAt', request.time) is timestamp);
+    }
+
+    function isValidSkill(data) {
+      return data.keys().hasAll(['name', 'category', 'authorId']) &&
+        data.name is string && data.name.size() <= 100 && data.name.size() > 0 &&
+        data.category is string && data.category.size() <= 100 &&
+        data.authorId is string && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        (data.get('level', '') is string && data.get('level', '').size() <= 50);
+    }
+
+    function isValidExperience(data) {
+      return data.keys().hasAll(['title', 'company', 'startDate', 'authorId']) &&
+        data.title is string && data.title.size() <= 200 && data.title.size() > 0 &&
+        data.company is string && data.company.size() <= 200 && data.company.size() > 0 &&
+        data.startDate is string && data.startDate.size() <= 50 &&
+        data.authorId is string && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        (data.get('endDate', '') is string && data.get('endDate', '').size() <= 50) &&
+        (data.get('current', false) is bool) &&
+        (data.get('description', '') is string && data.get('description', '').size() <= 5000);
+    }
+
+    function isValidBlog(data) {
+      return data.keys().hasAll(['title', 'content', 'authorId', 'createdAt']) &&
+        data.title is string && data.title.size() <= 300 && data.title.size() > 0 &&
+        data.content is string && data.content.size() <= 50000 &&
+        data.authorId is string && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        data.createdAt == request.time &&
+        (data.get('published', false) is bool) &&
+        (data.get('coverImage', '') is string && data.get('coverImage', '').size() <= 1000) &&
+        (data.get('updatedAt', request.time) is timestamp);
+    }
+
+    function isValidCertificate(data) {
+      return data.keys().hasAll(['name', 'issuer', 'authorId']) &&
+        data.name is string && data.name.size() <= 200 && data.name.size() > 0 &&
+        data.issuer is string && data.issuer.size() <= 200 &&
+        data.authorId is string && data.authorId.size() <= 128 &&
+        data.authorId == request.auth.uid &&
+        (data.get('date', '') is string && data.get('date', '').size() <= 50) &&
+        (data.get('fileUrl', '') is string && data.get('fileUrl', '').size() <= 1000);
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['name', 'email']) &&
+        data.name is string && data.name.size() <= 200 && data.name.size() > 0 &&
+        data.email is string && data.email.size() <= 200 &&
+        (data.get('title', '') is string && data.get('title', '').size() <= 200) &&
+        (data.get('bio', '') is string && data.get('bio', '').size() <= 5000) &&
+        (data.get('resumeUrl', '') is string && data.get('resumeUrl', '').size() <= 1000) &&
+        (data.get('githubUrl', '') is string && data.get('githubUrl', '').size() <= 1000) &&
+        (data.get('linkedinUrl', '') is string && data.get('linkedinUrl', '').size() <= 1000) &&
+        (data.get('twitterUrl', '') is string && data.get('twitterUrl', '').size() <= 1000) &&
+        (data.get('avatarUrl', '') is string && data.get('avatarUrl', '').size() <= 1000);
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['name', 'email', 'message', 'authorId', 'createdAt']) &&
+        data.name is string && data.name.size() <= 100 && data.name.size() > 0 &&
+        data.email is string && data.email.size() <= 200 && data.email.size() > 0 &&
+        data.message is string && data.message.size() <= 5000 && data.message.size() > 0 &&
+        data.authorId is string && data.authorId.size() <= 128 &&
+        data.createdAt == request.time &&
+        (data.get('read', false) is bool);
+    }
+
+    match /projects/{projectId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidProject(incoming());
+      allow update: if isOwner(existing().authorId) &&
+        incoming().authorId == existing().authorId && 
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        isValidProject(incoming());
+      allow delete: if isOwner(existing().authorId);
+    }
+
+    match /skills/{skillId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidSkill(incoming());
+      allow update: if isOwner(existing().authorId) &&
+        incoming().authorId == existing().authorId && 
+        isValidSkill(incoming());
+      allow delete: if isOwner(existing().authorId);
+    }
+
+    match /experiences/{experienceId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidExperience(incoming());
+      allow update: if isOwner(existing().authorId) &&
+        incoming().authorId == existing().authorId && 
+        isValidExperience(incoming());
+      allow delete: if isOwner(existing().authorId);
+    }
+
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidBlog(incoming());
+      allow update: if isOwner(existing().authorId) &&
+        incoming().authorId == existing().authorId &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && 
+        isValidBlog(incoming());
+      allow delete: if isOwner(existing().authorId);
+    }
+
+    match /certificates/{certificateId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidCertificate(incoming());
+      allow update: if isOwner(existing().authorId) &&
+        incoming().authorId == existing().authorId && 
+        isValidCertificate(incoming());
+      allow delete: if isOwner(existing().authorId);
+    }
+
+    match /userProfiles/{userId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidUserProfile(incoming());
+      allow update: if isSignedIn() && request.auth.uid == userId && isValidUserProfile(incoming());
+      allow delete: if false; // Don't allow deleting profile
+    }
+
+    match /messages/{messageId} {
+      allow read: if isOwner(existing().authorId);
+      allow create: if isValidMessage(incoming()); // Anyone can create
+      allow update: if isOwner(existing().authorId) &&
+        incoming().authorId == existing().authorId &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow delete: if isOwner(existing().authorId);
+    }
+  }
+}
